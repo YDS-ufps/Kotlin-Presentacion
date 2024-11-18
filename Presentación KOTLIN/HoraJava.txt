@@ -1,0 +1,230 @@
+public class Hora{
+    public static final String HH24 = "HH24";
+    public static final String HH12 = "HH12";
+    public static final String AM = "a.m.";
+    public static final String PM = "p.m.";
+    public String formato;
+    public String ampm;
+    public int horas;
+    public int minutos;
+    public int segundos;
+
+    public Hora() {
+        this.horas = 12;
+        this.minutos = 0;
+        this.segundos = 0;
+        this.formato = HH12;
+        this.ampm = AM;
+    }
+
+    public Hora(String formato) {
+        if (HH12.equals(formato)) {
+            this.horas = 12;
+            this.minutos = 0;
+            this.segundos = 0;
+            this.formato = HH12;
+            this.ampm = AM;
+        } else if (HH24.equals(formato)) {
+            this.horas = 0;
+            this.minutos = 0;
+            this.segundos = 0;
+            this.formato = HH24;
+            this.ampm = null;
+        } else {
+            this.horas = -1;
+            this.minutos = -1;
+            this.segundos = -1;
+            this.formato = null;
+            this.ampm = null;
+        }
+    }
+
+    public Hora(int horas, int minutos, int segundos)  {
+        this.horas = horas;
+        this.minutos = minutos;
+        this.segundos = segundos;
+        this.formato = HH24;
+    }
+
+    public Hora(int horas, int minutos, int segundos, String ampm) {
+        this.horas = horas;
+        this.minutos = minutos;
+        this.segundos = segundos;
+        this.formato = HH12;
+        this.ampm = ampm;
+
+        if (!esHoraValida1()) {
+            this.horas = -1;
+            this.minutos = -1;
+            this.segundos = -1;
+            this.formato = null;
+            this.ampm = null;
+        }
+    }
+
+    public Hora(int horas, int minutos, int segundos, String formato, String ampm) {
+        this.horas = horas;
+        this.minutos = minutos;
+        this.segundos = segundos;
+        this.formato = formato;
+
+        if (HH12.equals(formato)) {
+            this.ampm = ampm;
+        } else {
+            this.ampm = null;
+        }
+
+        if (!esHoraValida1()) {
+            this.horas = -1;
+            this.minutos = -1;
+            this.segundos = -1;
+            this.formato = null;
+            this.ampm = null;
+        }
+    }
+
+    public boolean esHoraValida1() {
+        if (HH24.equals(formato)) {
+            return horas >= 0 && horas < 24 && minutos >= 0 && minutos < 60 && segundos >= 0 && segundos < 60;
+        } else if (HH12.equals(formato)) {
+            return horas > 0 && horas <= 12 && minutos >= 0 && minutos < 60 && segundos >= 0 && segundos < 60 && 
+            (AM.equals(ampm) || PM.equals(ampm));
+        }
+        return false;
+    }
+
+    protected boolean esHoraValida(){
+        if (minutos < 0 || minutos > 59 || segundos < 0 || segundos > 59) {
+            return false;
+        }
+        if (formato.equals(HH24)) {
+            return horas >= 0 && horas <= 23;
+        } else {
+            return horas >= 1 && horas <= 12 && (ampm.equals(AM) || ampm.equals(PM));
+        }
+    }
+
+    public Hora getHoraHH24(){
+        Hora nuevaHora = clonar();
+        if (formato.equals(HH12)) {
+            nuevaHora.setFormato(HH24);
+        }
+        return nuevaHora;
+    }
+
+    public Hora getHoraHH12(){
+        Hora nuevaHora = clonar();
+        if (formato.equals(HH24)) {
+            nuevaHora.setFormato(HH12);
+        }
+        return nuevaHora;
+    }
+
+    private Hora clonar(){
+        return new Hora(horas, minutos, segundos, formato, ampm);
+    }
+
+    public int restar(Hora other){
+        int segundosThis = convertirASegundos();
+        int segundosOther = other.convertirASegundos();
+        return segundosThis - segundosOther;
+    }
+
+    public boolean esIgual(Hora other){
+        return this.restar(other) == 0;
+    }
+
+    public boolean esMenor(Hora other){
+        return this.restar(other) < 0;
+    }  
+
+    public boolean esMayor(Hora other){
+        return this.restar(other) > 0;
+    }
+
+    public String toString(){
+        String sufijo = "";
+        int horasMostrar = horas;
+
+        if (formato.equals(HH12)) {
+            sufijo = ampm;
+            if (horas == 0) {
+                horasMostrar = 12;
+            }
+        }
+
+        return String.format("%02d:%02d:%02d %s", horasMostrar, minutos, segundos, sufijo);
+    }
+
+    public void setFormato(String formato){
+        if (formato.equals(HH12) && this.formato.equals(HH24)) {
+            if (horas == 0) {
+                horas = 12;
+                ampm = AM;
+            } else if (horas == 12) {
+                ampm = PM;
+            } else if (horas > 12) {
+                horas -= 12;
+                ampm = PM;
+            } else {
+                ampm = AM;
+            }
+        } else if (formato.equals(HH24) && this.formato.equals(HH12)) {
+            if (ampm.equals(PM) && horas != 12) {
+                horas += 12;
+            } else if (ampm.equals(AM) && horas == 12) {
+                horas = 0;
+            }
+        }
+        this.formato = formato;
+    }
+
+    private int convertirASegundos() {
+        int horasEn24 = horas;
+        if (formato.equals(HH12)) {
+            if (ampm.equals(PM) && horas != 12) {
+                horasEn24 += 12;
+            } else if (ampm.equals(AM) && horas == 12) {
+                horasEn24 = 0;
+            }
+        }
+        return horasEn24 * 3600 + minutos * 60 + segundos;
+    }
+
+    public String getFormato() {
+        return formato;
+    }
+
+    public String getAmpm() {
+        return ampm;
+    }
+
+    public int getHoras() {
+        return horas;
+    }
+
+    public int getMinutos() {
+        return minutos;
+    }
+
+    public int getSegundos() {
+        return segundos;
+    }
+
+    public void setAmpm(String ampm) {
+        this.ampm = ampm;
+    }
+
+    public void setHoras(int horas) {
+        this.horas = horas;
+    }
+
+    public void setMinutos(int minutos) {
+        this.minutos = minutos;
+    }
+
+    public void setSegundos(int segundos) {
+        this.segundos = segundos;
+    }
+
+}
